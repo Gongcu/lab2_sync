@@ -4,7 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}",
-                "vscode/include",
                 "${workspaceFolder}/include"
             ],
             "defines": [],
