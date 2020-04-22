@@ -197,6 +197,7 @@ void bst_test(int num_threads,int node_count){
     gettimeofday(&tv_start, NULL);
     for(i=0 ; i < node_count ; i++){
         lab2_node_remove(tree,data[i]);
+        printf("    total node count    : %d \n\n",node_count);
     }
 
     gettimeofday(&tv_end, NULL);
