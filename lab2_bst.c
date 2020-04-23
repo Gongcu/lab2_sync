@@ -154,7 +154,6 @@ int lab2_node_insert_cg(lab2_tree *tree, lab2_node *new_node)
 int lab2_node_remove(lab2_tree *tree, int key)
 {
     int found = 0;
-    printf("run");
     if (!tree->root)
         return LAB2_ERROR;
     // You need to implement lab2_node_remove function.
@@ -174,11 +173,8 @@ int lab2_node_remove(lab2_tree *tree, int key)
             p = p->right;
     }
 
-    if (found != 1)
-    {
-        printf("not found");
+    if (!found)
         return LAB2_ERROR;
-    }
 
     if ((p->left) && (p->right))
     { //two child
@@ -215,7 +211,7 @@ int lab2_node_remove(lab2_tree *tree, int key)
     else
     { // one child
         if (q){
-            if (q->left) //Parent's left child is to be deleted
+            if (q->left==p) //Parent's left child is to be deleted
             {
                 if (p->left)
                     q->left = p->left;
