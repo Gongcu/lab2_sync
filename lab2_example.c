@@ -1,8 +1,8 @@
 /*
 *	Operating System Lab
 *	    Lab2 (Synchronization)
-*	    Student id : 
-*	    Student name : 
+*	    Student id : 32164172
+*	    Student name : Jeong Yuseok
 *
 *   lab2_example.c :
 *       - mutex usage example code.

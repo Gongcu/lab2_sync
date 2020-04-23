@@ -48,7 +48,6 @@ static void print_result(lab2_tree *tree,int num_threads,int node_count ,int is_
     char *op[] = {"insert","delete"};
     int result_count=0;
 
-
     printf("=====  Multi thread %s  %s experiment  =====\n",cond[is_sync],op[op_type]);
     printf("\n Experiment info \n");
     printf("    test node           : %d \n",node_count);
@@ -58,12 +57,9 @@ static void print_result(lab2_tree *tree,int num_threads,int node_count ,int is_
     printf("\n BST inorder iteration result : \n");
     //result_count=lab2_node_print_inorder(tree);
     //printf("    total node count    : %d \n\n",node_count);
-
-
 }
 
 void* thread_job_delete(void *arg){
-
     thread_arg *th_arg = (thread_arg *)arg;
     lab2_tree *tree = th_arg->tree;
     int is_sync = th_arg->is_sync;
@@ -86,7 +82,6 @@ void* thread_job_insert(void *arg){
     int *data = th_arg->data_set;
     int start = th_arg->start, end = th_arg->end;
     int i;
-
     for (i=start ; i < end ; i++) {               
         lab2_node* node = lab2_node_create(data[i]);
         if(is_sync == LAB2_TYPE_FINEGRAINED)
@@ -117,8 +112,9 @@ void bst_test(int num_threads,int node_count){
         abort();
 
     /*
-     * single thread insert test.
+     * Single thread insert test.
      */
+
     gettimeofday(&tv_start, NULL);
     printf("\n");
     tree = lab2_tree_create();
@@ -146,7 +142,6 @@ void bst_test(int num_threads,int node_count){
         th_arg->data_set = data;
         th_arg->start = i*term;
         th_arg->end = (i+1)*term;
-
         pthread_create(&threads[i].thread,NULL,thread_job_insert,(void*)th_arg);
     }
 
@@ -172,7 +167,6 @@ void bst_test(int num_threads,int node_count){
         th_arg->data_set = data;
         th_arg->start = i*term;
         th_arg->end = (i+1)*term;
-
         pthread_create(&threads[i].thread,NULL,thread_job_insert,(void*)th_arg);
     }
 
@@ -183,11 +177,11 @@ void bst_test(int num_threads,int node_count){
     exe_time = get_timeval(&tv_insert_start, &tv_insert_end);
     print_result(tree,num_threads, node_count, is_sync, LAB2_OPTYPE_INSERT,exe_time);
     lab2_tree_delete(tree);
-    
+
     /* 
-     * single thread delete test
+     * Single thread delete test
      */
-  
+
     tree = lab2_tree_create();
     for (i=0 ; i < node_count ; i++) {               
         lab2_node* node = lab2_node_create(data[i]);
@@ -204,9 +198,9 @@ void bst_test(int num_threads,int node_count){
     exe_time = get_timeval(&tv_start, &tv_end);
     print_result(tree ,num_threads, node_count, LAB2_TYPE_SINGLE, LAB2_OPTYPE_DELETE,exe_time);
     lab2_tree_delete(tree);
-    
+
     /* 
-     * multi thread delete test coarse-grained  
+     * Multi thread delete test coarse-grained  
      */
     is_sync = LAB2_TYPE_COARSEGRAINED;
     tree = lab2_tree_create();
@@ -217,7 +211,7 @@ void bst_test(int num_threads,int node_count){
             lab2_node_insert_fg(tree,node);
         else if(is_sync == LAB2_TYPE_COARSEGRAINED)
             lab2_node_insert_cg(tree,node);
-    }            
+    }
     
     gettimeofday(&tv_delete_start, NULL);
     for(i=0 ; i < num_threads ; i++){
