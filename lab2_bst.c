@@ -142,6 +142,30 @@ int lab2_node_insert_fg(lab2_tree *tree, lab2_node *new_node)
 int lab2_node_insert_cg(lab2_tree *tree, lab2_node *new_node)
 {
     // You need to implement lab2_node_insert_cg function.
+    // You need to implement lab2_node_insert function.
+    lab2_node *temp = tree->root;
+    lab2_node *parent_node = NULL;
+    if (!temp)
+    {
+        tree->root = new_node;
+        return LAB2_SUCCESS;
+    }
+    while (temp)
+    {
+        parent_node = temp;
+        if (temp->key == new_node->key)
+            return LAB2_ERROR;
+        if (temp->key > new_node->key)
+            temp = temp->left;
+        else
+            temp = temp->right;
+    }
+
+    if (parent_node->key > new_node->key)
+        parent_node->left = new_node;
+    else
+        parent_node->right = new_node;
+    return LAB2_SUCCESS;
 }
 
 /* 
@@ -293,7 +317,7 @@ int lab2_node_remove_cg(lab2_tree *tree, int key)
         }
 
         if (!found)
-            return LAB2_ERROR;
+            goto UNLOCK;
 
         if ((p->left) && (p->right))
         { //two child
@@ -360,7 +384,7 @@ int lab2_node_remove_cg(lab2_tree *tree, int key)
             lab2_node_delete(p);
         }
     }
-    pthread_mutex_unlock(&(tree->mutex));
+    UNLOCK:pthread_mutex_unlock(&(tree->mutex));
     return LAB2_SUCCESS;
 }
 

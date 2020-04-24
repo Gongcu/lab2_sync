@@ -71,6 +71,7 @@ void* thread_job_delete(void *arg){
     int start = th_arg->start, end = th_arg->end;
     int i;
     for(i=start ; i < end; i++ ){
+        //lab2_node_print_inorder(tree); printf("\n"); //just for test
         if(is_sync == LAB2_TYPE_FINEGRAINED)
             lab2_node_remove_fg(tree, data_set[i]);        
         else if(is_sync == LAB2_TYPE_COARSEGRAINED)
