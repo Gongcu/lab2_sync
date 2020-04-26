@@ -243,6 +243,8 @@ void bst_test(int num_threads,int node_count){
     /* 
      * multi thread delete test fine-grained  
      */
+    int o=0;
+    while(o<100){
     is_sync = LAB2_TYPE_FINEGRAINED;
     tree = lab2_tree_create();
     for (i=0; i < node_count; i++) { 
@@ -273,7 +275,8 @@ void bst_test(int num_threads,int node_count){
 
     print_result(tree ,num_threads, node_count, is_sync, LAB2_OPTYPE_DELETE,exe_time);
     lab2_tree_delete(tree);
-
+    o++;
+    }
     printf("\n");
 
     free(threads);

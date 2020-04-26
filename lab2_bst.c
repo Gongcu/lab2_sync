@@ -59,7 +59,8 @@ lab2_tree *lab2_tree_create()
     // You need to implement lab2_tree_create function.
     lab2_tree *tree = (lab2_tree *)malloc(sizeof(lab2_tree));
     tree->root = NULL;
-    pthread_mutex_init(&(tree->mutex), NULL);
+    if (pthread_mutex_init(&(tree->mutex), NULL) != LAB2_SUCCESS)
+        assert(0);
     return tree;
 }
 
@@ -129,6 +130,30 @@ int lab2_node_insert(lab2_tree *tree, lab2_node *new_node)
 int lab2_node_insert_fg(lab2_tree *tree, lab2_node *new_node)
 {
     // You need to implement lab2_node_insert_fg function.
+    lab2_node *temp = tree->root;
+    lab2_node *parent_node = NULL;
+    if (!temp)
+    {
+        tree->root = new_node;
+        return LAB2_SUCCESS;
+    }
+
+    while (temp)
+    {
+        parent_node = temp;
+        if (temp->key == new_node->key)
+            return LAB2_ERROR;
+        if (temp->key > new_node->key)
+            temp = temp->left;
+        else
+            temp = temp->right;
+    }
+
+    if (parent_node->key > new_node->key)
+        parent_node->left = new_node;
+    else
+        parent_node->right = new_node;
+    return LAB2_SUCCESS;
 }
 
 /* 
@@ -178,130 +203,19 @@ int lab2_node_insert_cg(lab2_tree *tree, lab2_node *new_node)
  */
 int lab2_node_remove(lab2_tree *tree, int key)
 {
-    int found = 0;
-    if (!tree->root)
-        return LAB2_ERROR;
-    // You need to implement lab2_node_remove function.
-    lab2_node *p = tree->root; //to be deleted node
-    lab2_node *q = NULL;       //deleted node' parent
-    while (p)
-    {
-        if (p->key == key)
-        {
-            found = 1;
-            break;
-        }
-        q = p;
-        if (p->key > key)
-            p = p->left;
-        else
-            p = p->right;
-    }
-
-    if (!found)
-        return LAB2_ERROR;
-
-    if ((p->left) && (p->right))
-    { //two child
-        lab2_node *min = p->right, *min_parent = p;
-        while (min->left)
-        {
-            min_parent = min;
-            min = min->left;
-        }
-        if (min_parent->left == min)
-        {
-            min_parent->left = min->right;
-        }
-        else
-        {
-            min_parent->right = min->right;
-        }
-
-        p->key = min->key;
-        lab2_node_delete(min);
-    }
-    else if ((p->left == NULL) && (p->right == NULL))
-    {
-        if (q)
-        {
-            if (q->left == p)
-                q->left = NULL;
-            else
-                q->right = NULL;
-        }
-        else
-            tree->root = NULL;
-        lab2_node_delete(p);
-    }
-    else
-    { // one child
-        if (q)
-        {
-            if (q->left == p) //Parent's left child is to be deleted
-            {
-                if (p->left)
-                    q->left = p->left;
-                else
-                    q->left = p->right;
-            }
-            else
-            { //Parent's right child is to be deleted
-                if (p->left)
-                    q->right = p->left;
-
-                else
-                    q->right = p->right;
-            }
-        }
-        else
-        { //delete root
-            if (p->left)
-                tree->root = p->left;
-            else if (p->right)
-                tree->root = p->right;
-            else
-                tree->root = NULL;
-        }
-        lab2_node_delete(p);
-    }
-    return LAB2_SUCCESS;
-}
-
-/* 
- * TODO
- *  Implement a function which remove nodes from the BST in fine-grained manner.
- *
- *  @param lab2_tree *tree  : bst tha you need to remove node in fine-grained manner from bst which contains key.
- *  @param int key          : key value that you want to delete. 
- *  @return                 : status (success or fail)
- */
-int lab2_node_remove_fg(lab2_tree *tree, int key)
-{
     // You need to implement lab2_node_remove_fg function.
-}
-
-/* 
- * TODO
- *  Implement a function which remove nodes from the BST in coarse-grained manner.
- *
- *  @param lab2_tree *tree  : bst tha you need to remove node in coarse-grained manner from bst which contains key.
- *  @param int key          : key value that you want to delete. 
- *  @return                 : status (success or fail)
- */
-int lab2_node_remove_cg(lab2_tree *tree, int key)
-{
-    // You need to implement lab2_node_remove_cg function.
     int found = 0;
-    pthread_mutex_lock(&(tree->mutex));
-    if (!tree->root){
-        //empty
+    int status = LAB2_SUCCESS;
+    if (!tree->root)
+    {
+        status = LAB2_NULL_TREE;
     }
-    else
+    if (status != LAB2_NULL_TREE)
     {
         // You need to implement lab2_node_remove function.
-        lab2_node *p = tree->root; //to be deleted node
-        lab2_node *q = NULL;       //deleted node' parent
+        lab2_node *p;        //to be deleted node
+        lab2_node *q = NULL; //deleted node' parent
+        p = tree->root;
         while (p)
         {
             if (p->key == key)
@@ -349,7 +263,9 @@ int lab2_node_remove_cg(lab2_tree *tree, int key)
                     q->right = NULL;
             }
             else
-                tree->root = NULL;
+            {
+                tree->root = NULL; //tree->root ==p
+            }
             lab2_node_delete(p);
         }
         else
@@ -384,10 +300,249 @@ int lab2_node_remove_cg(lab2_tree *tree, int key)
             lab2_node_delete(p);
         }
     }
-    UNLOCK:pthread_mutex_unlock(&(tree->mutex));
+UNLOCK:
     return LAB2_SUCCESS;
 }
 
+/* 
+ * TODO
+ *  Implement a function which remove nodes from the BST in fine-grained manner.
+ *
+ *  @param lab2_tree *tree  : bst tha you need to remove node in fine-grained manner from bst which contains key.
+ *  @param int key          : key value that you want to delete. 
+ *  @return                 : status (success or fail)
+ */
+lab2_node *lab2_node_fg_seach(lab2_node *parent, lab2_node *root, int key)
+{
+}
+
+
+
+int lab2_node_remove_fg(lab2_tree *tree, int key)
+{
+    // You need to implement lab2_node_remove_cg function.
+    int found = 0;
+    pthread_mutex_lock(&(tree->mutex));
+    if (!tree->root)
+    {
+        //tree is empty
+        pthread_mutex_unlock(&(tree->mutex));
+    }
+    else
+    {
+        // You need to implement lab2_node_remove function.
+        lab2_node *p = tree->root; //to be deleted node
+        lab2_node *q = NULL;       //deleted node' parent
+        pthread_mutex_lock(&(SUB_MUTEX));
+        while (p)
+        {
+            if (p->key == key)
+            {
+                found = 1;
+                break;
+            }
+            q = p;
+            if (p->key > key)
+                p = p->left;
+            else
+                p = p->right;
+        }
+
+        if (!found)
+        { //No node
+            pthread_mutex_unlock(&(SUB_MUTEX));
+            pthread_mutex_unlock(&(tree->mutex));
+            return LAB2_ERROR;
+        }
+        else
+        {
+            pthread_mutex_unlock(&(tree->mutex));
+
+            if ((p->left) && (p->right))
+            { //two child
+                lab2_node *min = p->right, *min_parent = p;
+                while (min->left)
+                {
+                    min_parent = min;
+                    min = min->left;
+                }
+                if (min_parent->left == min)
+                {
+                    min_parent->left = min->right;
+                }
+                else
+                {
+                    min_parent->right = min->right;
+                }
+
+                p->key = min->key;
+                lab2_node_delete(min);
+                pthread_mutex_unlock(&(SUB_MUTEX));
+                return LAB2_SUCCESS;
+            }
+
+            if ((p->left == NULL) && (p->right == NULL))
+            {
+                if (q)
+                {
+                    if (q->left == p)
+                        q->left = NULL;
+                    else
+                        q->right = NULL;
+                }
+                else
+                    tree->root = NULL;
+                lab2_node_delete(p);
+                pthread_mutex_unlock(&(SUB_MUTEX));
+                return LAB2_SUCCESS;
+            }
+            if((p->left != NULL) && (p->right == NULL)||(p->left == NULL) && (p->right != NULL))
+            { // one child
+                if (q)
+                {
+                    if (q->left == p) //Parent's left child is to be deleted
+                    {
+                        if (p->left)
+                            q->left = p->left;
+                        else
+                            q->left = p->right;
+                    }
+                    else
+                    { //Parent's right child is to be deleted
+                        if (p->left)
+                            q->right = p->left;
+
+                        else
+                            q->right = p->right;
+                    }
+                }
+                else
+                { //delete root
+                    if (p->left)
+                        tree->root = p->left;
+                    else if (p->right)
+                        tree->root = p->right;
+                    else
+                        tree->root = NULL;
+                }
+                lab2_node_delete(p);
+                pthread_mutex_unlock(&(SUB_MUTEX));
+                return LAB2_SUCCESS;
+            }
+        }
+    }
+    return LAB2_SUCCESS;
+}
+
+/* 
+ * TODO
+ *  Implement a function which remove nodes from the BST in coarse-grained manner.
+ *  @param lab2_tree *tree  : bst tha you need to remove node in coarse-grained manner from bst which contains key.
+ *  @param int key          : key value that you want to delete. 
+ *  @return                 : status (success or fail)
+ */
+int lab2_node_remove_cg(lab2_tree *tree, int key)
+{
+    // You need to implement lab2_node_remove_fg function.
+    int found = 0;
+    pthread_mutex_lock(&(tree->mutex));
+    if (!tree->root)
+    {
+        //empty
+    }
+    else
+    {
+        // You need to implement lab2_node_remove function.
+        lab2_node *p = tree->root; //to be deleted node
+        lab2_node *q = NULL;       //deleted node' parent
+
+        while (p)
+        {
+            if (p->key == key)
+            {
+                found = 1;
+                break;
+            }
+            q = p;
+            if (p->key > key)
+                p = p->left;
+            else
+                p = p->right;
+        }
+        if (!found)
+            goto UNLOCK;
+        else
+        {
+            if ((p->left) && (p->right))
+            { //two child
+                lab2_node *min = p->right, *min_parent = p;
+                while (min->left)
+                {
+                    min_parent = min;
+                    min = min->left;
+                }
+                if (min_parent->left == min)
+                {
+                    min_parent->left = min->right;
+                }
+                else
+                {
+                    min_parent->right = min->right;
+                }
+
+                p->key = min->key;
+                lab2_node_delete(min);
+            }
+            else if ((p->left == NULL) && (p->right == NULL))
+            {
+                if (q)
+                {
+                    if (q->left == p)
+                        q->left = NULL;
+                    else
+                        q->right = NULL;
+                }
+                else
+                    tree->root = NULL;
+                lab2_node_delete(p);
+            }
+            else
+            { // one child
+                if (q)
+                {
+                    if (q->left == p) //Parent's left child is to be deleted
+                    {
+                        if (p->left)
+                            q->left = p->left;
+                        else
+                            q->left = p->right;
+                    }
+                    else
+                    { //Parent's right child is to be deleted
+                        if (p->left)
+                            q->right = p->left;
+
+                        else
+                            q->right = p->right;
+                    }
+                }
+                else
+                { //delete root
+                    if (p->left)
+                        tree->root = p->left;
+                    else if (p->right)
+                        tree->root = p->right;
+                    else
+                        tree->root = NULL;
+                }
+                lab2_node_delete(p);
+            }
+        }
+    }
+UNLOCK:
+    pthread_mutex_unlock(&(tree->mutex));
+    return LAB2_SUCCESS;
+}
 /*
  * TODO
  *  Implement function which delete struct lab2_tree

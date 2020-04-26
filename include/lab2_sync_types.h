@@ -18,10 +18,11 @@
 
 #define LAB2_SUCCESS                0
 #define LAB2_ERROR                 -1
+#define LAB2_NULL_TREE              100
 
+pthread_mutex_t SUB_MUTEX = PTHREAD_MUTEX_INITIALIZER;
 /*
  * lab2_node
- *
  *  struct lab2_node *left  : left child link
  *  struct lab2_node *right : right child link
  *  int key                 : node key value 
