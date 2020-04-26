@@ -18,7 +18,7 @@
 #include <string.h>
 
 #include "lab2_sync_types.h"
-
+pthread_mutex_t SUB_MUTEX = PTHREAD_MUTEX_INITIALIZER;
 /*
  * TODO
  *  Implement funtction which traverse BST in in-order
@@ -333,7 +333,7 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
         // You need to implement lab2_node_remove function.
         lab2_node *p = tree->root; //to be deleted node
         lab2_node *q = NULL;       //deleted node' parent
-        pthread_mutex_lock(&(SUB_MUTEX));
+        //pthread_mutex_lock(&(SUB_MUTEX));
         while (p)
         {
             if (p->key == key)
@@ -350,13 +350,13 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
 
         if (!found)
         { //No node
-            pthread_mutex_unlock(&(SUB_MUTEX));
+            //pthread_mutex_unlock(&(SUB_MUTEX));
             pthread_mutex_unlock(&(tree->mutex));
             return LAB2_ERROR;
         }
         else
         {
-            pthread_mutex_unlock(&(tree->mutex));
+            //pthread_mutex_unlock(&(tree->mutex));
 
             if ((p->left) && (p->right))
             { //two child
@@ -377,7 +377,7 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
 
                 p->key = min->key;
                 lab2_node_delete(min);
-                pthread_mutex_unlock(&(SUB_MUTEX));
+                pthread_mutex_unlock(&(tree->mutex));
                 return LAB2_SUCCESS;
             }
 
@@ -393,7 +393,7 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                 else
                     tree->root = NULL;
                 lab2_node_delete(p);
-                pthread_mutex_unlock(&(SUB_MUTEX));
+                pthread_mutex_unlock(&(tree->mutex));
                 return LAB2_SUCCESS;
             }
             if((p->left != NULL) && (p->right == NULL)||(p->left == NULL) && (p->right != NULL))
@@ -426,7 +426,7 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                         tree->root = NULL;
                 }
                 lab2_node_delete(p);
-                pthread_mutex_unlock(&(SUB_MUTEX));
+                pthread_mutex_unlock(&(tree->mutex));
                 return LAB2_SUCCESS;
             }
         }
