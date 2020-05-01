@@ -207,6 +207,8 @@ void bst_test(int num_threads,int node_count){
     /* 
      * multi thread delete test coarse-grained  
      */
+    int m=0; double csum = 0.0;
+    while(m<100){
     is_sync = LAB2_TYPE_COARSEGRAINED;
     tree = lab2_tree_create();
 
@@ -234,23 +236,25 @@ void bst_test(int num_threads,int node_count){
         pthread_join(threads[i].thread, NULL);
     gettimeofday(&tv_delete_end, NULL);
     exe_time = get_timeval(&tv_delete_start, &tv_delete_end);
+    csum+=exe_time;
     print_result(tree,num_threads, node_count, is_sync,LAB2_OPTYPE_DELETE,exe_time);
     lab2_tree_delete(tree);
+    m++;
+    }
 
     /* 
      * multi thread delete test fine-grained  
      */
-    //int o=0; double fsum = 0.0;
-    //while(o<100){
+    int o=0; double fsum = 0.0;
+    while(o<100){
     is_sync = LAB2_TYPE_FINEGRAINED;
     tree = lab2_tree_create();
     for (i=0; i < node_count; i++) { 
         node = lab2_node_create(data[i]);
-        lab2_node_insert(tree,node);/*
         if(is_sync == LAB2_TYPE_FINEGRAINED)
             lab2_node_insert_fg(tree,node);
         else if(is_sync == LAB2_TYPE_COARSEGRAINED)
-            lab2_node_insert_cg(tree,node);*/
+            lab2_node_insert_cg(tree,node);
     }
 
     gettimeofday(&tv_delete_start, NULL);
@@ -270,13 +274,13 @@ void bst_test(int num_threads,int node_count){
 
     gettimeofday(&tv_delete_end, NULL);
     exe_time = get_timeval(&tv_delete_start, &tv_delete_end);
-    //fsum+=exe_time;
+    fsum+=exe_time;
     print_result(tree ,num_threads, node_count, is_sync, LAB2_OPTYPE_DELETE,exe_time);
     lab2_tree_delete(tree);
-    //o++;}
-    //printf("\n");
-    //printf("RESULT: Execution 1000 times average\n");
-    //printf("course-grained lock:%lf    fine-grained lock:%lf\n",(csum/100.0),(fsum/100.0));
+    o++;}
+    printf("\n");
+    printf("RESULT: Execution 1000 times average\n");
+    printf("course-grained lock:%lf    fine-grained lock:%lf\n",(csum/100.0),(fsum/100.0));
 
     free(threads);
     free(data);
