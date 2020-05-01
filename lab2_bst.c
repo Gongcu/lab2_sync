@@ -385,8 +385,11 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
             else
                 p = p->right;
         }
-        if (!found)
-            goto UNLOCK;
+        
+        if (!found){
+            pthread_mutex_unlock(&(tree->mutex));
+            return LAB2_ERROR;
+        }
         else
         {
             if ((p->left) && (p->right))
@@ -453,10 +456,9 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                 }
                 lab2_node_delete(p);
             }
+            pthread_mutex_unlock(&(tree->mutex));
         }
     }
-UNLOCK:
-    pthread_mutex_unlock(&(tree->mutex));
     return LAB2_SUCCESS;
 }
 
