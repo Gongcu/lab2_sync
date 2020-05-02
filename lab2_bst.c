@@ -393,9 +393,12 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                 }
 
                 p->key = min->key;
+                pthread_mutex_unlock(&(p->mutex));
                 lab2_node_delete(min);
+                return LAB2_SUCCESS;
             }
-            else if ((p->left == NULL) && (p->right == NULL))
+
+            if ((p->left == NULL) && (p->right == NULL))
             {
                 if (q)
                 {
@@ -406,10 +409,12 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                 }
                 else
                     tree->root = NULL;
+                pthread_mutex_unlock(&(p->mutex));
                 lab2_node_delete(p);
+                return LAB2_SUCCESS;
             }
-            else
-            { // one child
+
+            if(!(p->left)&&(p->right) || (p->left)&&!(p->right)){// one child
                 if (q)
                 {
                     if (q->left == p) //Parent's left child is to be deleted
@@ -437,11 +442,13 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                     else
                         tree->root = NULL;
                 }
+                pthread_mutex_unlock(&(p->mutex));
                 lab2_node_delete(p);
+                return LAB2_SUCCESS;
             }
         }
     }
-    return LAB2_SUCCESS;
+    return NULL;
 }
 
 /* 
