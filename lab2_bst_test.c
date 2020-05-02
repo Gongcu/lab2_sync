@@ -56,7 +56,7 @@ static void print_result(lab2_tree *tree,int num_threads,int node_count ,int is_
     printf("    execution time      : %lf seconds \n\n",time);
 
     printf("\n BST inorder iteration result : \n");
-    //result_count = lab2_node_print_inorder(tree);------------------------------------------------
+    //result_count = lab2_node_print_inorder(tree);
     printf("    total node count    : %d \n\n",node_count);
 
 
@@ -188,6 +188,7 @@ void bst_test(int num_threads,int node_count){
      * single thread delete test
      */
 
+    /*
     tree = lab2_tree_create();
     for (i=0 ; i < node_count ; i++) {               
         lab2_node* node = lab2_node_create(data[i]);
@@ -203,10 +204,13 @@ void bst_test(int num_threads,int node_count){
     exe_time = get_timeval(&tv_start, &tv_end);
     print_result(tree ,num_threads, node_count, LAB2_TYPE_SINGLE, LAB2_OPTYPE_DELETE,exe_time);
     lab2_tree_delete(tree);
-    
+    */
+
     /* 
      * multi thread delete test coarse-grained  
      */
+
+    /*
     is_sync = LAB2_TYPE_COARSEGRAINED;
     tree = lab2_tree_create();
 
@@ -237,10 +241,13 @@ void bst_test(int num_threads,int node_count){
 
     print_result(tree,num_threads, node_count, is_sync,LAB2_OPTYPE_DELETE,exe_time);
     lab2_tree_delete(tree);
+    */
 
     /* 
      * multi thread delete test fine-grained  
      */
+
+    /*
     is_sync = LAB2_TYPE_FINEGRAINED;
     tree = lab2_tree_create();
     for (i=0; i < node_count; i++) { 
@@ -271,9 +278,9 @@ void bst_test(int num_threads,int node_count){
 
     print_result(tree ,num_threads, node_count, is_sync, LAB2_OPTYPE_DELETE,exe_time);
     lab2_tree_delete(tree);
-
+    */
     printf("\n");
-
+    
     free(threads);
     free(data);
 }

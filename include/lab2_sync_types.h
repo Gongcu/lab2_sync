@@ -41,7 +41,9 @@ typedef struct lab2_node {
  *  struct lab2_node *root  : root node of bst.
  */
 typedef struct lab2_tree {
+    pthread_mutex_t mutex;
     struct lab2_node *root;
+    
 } lab2_tree;
 
 /* 
