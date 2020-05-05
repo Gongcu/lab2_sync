@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "lab2_sync_types.h"
+pthread_mutex_t SUB_MUTEX = PTHREAD_MUTEX_INITIALIZER;
 /*
  * TODO
  *  Implement funtction which traverse BST in in-order
@@ -153,7 +154,7 @@ int lab2_node_insert_fg(lab2_tree *tree, lab2_node *new_node)
             temp = temp->right;
         }
     }
-    new_node->parent=parent_node;
+
     if (parent_node->key > new_node->key){
         parent_node->left = new_node;
     }
@@ -174,7 +175,8 @@ int lab2_node_insert_fg(lab2_tree *tree, lab2_node *new_node)
 int lab2_node_insert_cg(lab2_tree *tree, lab2_node *new_node)
 {
     // You need to implement lab2_node_insert_cg function.
-    lab2_node *temp = tree->root;
+    // You need to implement lab2_node_insert function.
+  lab2_node *temp = tree->root;
     lab2_node *parent_node = NULL;
     if (!temp)
     {
@@ -193,7 +195,7 @@ int lab2_node_insert_cg(lab2_tree *tree, lab2_node *new_node)
             temp = temp->right;
         }
     }
-    new_node->parent=parent_node;
+
     if (parent_node->key > new_node->key){
         parent_node->left = new_node;
     }
@@ -313,21 +315,6 @@ int lab2_node_remove(lab2_tree *tree, int key)
 UNLOCK:
     return LAB2_SUCCESS;
 }
-lab2_node* min_search(lab2_node *root){
-    if(root->left){
-        if(root->left->left){
-            pthread_mutex_lock(&(root->left->mutex));
-            pthread_mutex_unlock(&(root->mutex));
-            return min_search(root->left);
-        }else{
-            pthread_mutex_lock(&(root->left->mutex));
-            pthread_mutex_unlock(&(root->mutex));
-            return root->left;
-        }
-    }else{
-        return root;
-    }
-}
 
 lab2_node* search(lab2_node *root, int key)
 {
@@ -366,7 +353,7 @@ lab2_node* search(lab2_node *root, int key)
 
 int lab2_node_remove_fg(lab2_tree *tree, int key)
 {
-    int found = 0;
+     int found = 0;
     pthread_mutex_lock(&(tree->mutex));
     if (!tree->root)
     {
@@ -374,100 +361,98 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
     }
     else
     {
-        // You need to implement lab2_node_remove function.
-        pthread_mutex_lock(&(tree->root->mutex));
-        pthread_mutex_unlock(&(tree->mutex));
-        lab2_node *p = NULL; //to be deleted node
+        lab2_node *p;        //to be deleted node
         lab2_node *q = NULL; //deleted node' parent
-        p = search(tree->root, key);
-        if (!p)
+        p = tree->root;
+        while (p)
         {
+            if (p->key == key)
+            {
+                found = 1;
+                break;
+            }
+            q = p;
+            if (p->key > key)
+                p = p->left;
+            else
+                p = p->right;
+        }
+        pthread_mutex_unlock(&(tree->mutex));
+        
+
+        if (!p){
             return LAB2_ERROR;
         }
-        if(p->parent){
-            pthread_mutex_lock(&(p->parent->mutex));
-            q = p->parent;
-        }
-        if ((p->left) && (p->right))
-        { //two child
-            lab2_node *min = p->right, *min_parent = p;
-            while (min->left)
-            {
-                min_parent = min;
-                min = min->left;
-            }/*
-            lab2_node *min, *min_parent;
-            pthread_mutex_lock(&(p->right->mutex));
-            min=min_search(p->right);
-
-            min_parent=min->parent;*/
-            if (min_parent->left == min)
-            {
-                min_parent->left = min->right;
-            }
-            else
-            {
-                min_parent->right = min->right;
-            }
-            //pthread_mutex_unlock(&(min->mutex));
-            p->key = min->key;
-            if(p->parent)
-                pthread_mutex_unlock(&(p->parent->mutex));
-            pthread_mutex_unlock(&(p->mutex));
-            lab2_node_delete(min);
-            return LAB2_SUCCESS;
-        }
-
-        if ((p->left == NULL) && (p->right == NULL))
+        else
         {
-            if (q)
-            {
-                if (q->left == p)
-                    q->left = NULL;
-                else
-                    q->right = NULL;
-                pthread_mutex_unlock(&(p->parent->mutex));
-            }
-            else
-                tree->root = NULL;
-            pthread_mutex_unlock(&(p->mutex));
-            lab2_node_delete(p);
-            return LAB2_SUCCESS;
-        }
-
-        if (!(p->left) && (p->right) || (p->left) && !(p->right))
-        { // one child
-            if (q)
-            {
-                if (q->left == p) //Parent's left child is to be deleted
+            if ((p->left) && (p->right))
+            { //two child
+                lab2_node *min = p->right, *min_parent = p;
+                while (min->left)
                 {
-                    if (p->left)
-                        q->left = p->left;
-                    else
-                        q->left = p->right;
+                    min_parent = min;
+                    min = min->left;
+                }
+                if (min_parent->left == min)
+                {
+                    min_parent->left = min->right;
                 }
                 else
-                { //Parent's right child is to be deleted
-                    if (p->left)
-                        q->right = p->left;
-
-                    else
-                        q->right = p->right;
+                {
+                    min_parent->right = min->right;
                 }
-                pthread_mutex_unlock(&(p->parent->mutex));
+
+                p->key = min->key;
+                lab2_node_delete(min);
+                return LAB2_SUCCESS;
             }
-            else
-            { //delete root
-                if (p->left)
-                    tree->root = p->left;
-                else if (p->right)
-                    tree->root = p->right;
+
+            if ((p->left == NULL) && (p->right == NULL))
+            {
+                if (q)
+                {
+                    if (q->left == p)
+                        q->left = NULL;
+                    else
+                        q->right = NULL;
+                }
                 else
                     tree->root = NULL;
+                lab2_node_delete(p);
+                return LAB2_SUCCESS;
             }
-            pthread_mutex_unlock(&(p->mutex));
-            lab2_node_delete(p);
-            return LAB2_SUCCESS;
+
+            if(!(p->left)&&(p->right) || (p->left)&&!(p->right)){// one child
+                if (q)
+                {
+                    if (q->left == p) //Parent's left child is to be deleted
+                    {
+                        if (p->left)
+                            q->left = p->left;
+                        else
+                            q->left = p->right;
+                    }
+                    else
+                    { //Parent's right child is to be deleted
+                        if (p->left)
+                            q->right = p->left;
+
+                        else
+                            q->right = p->right;
+                    }
+                }
+                else
+                { //delete root
+                    if (p->left)
+                        tree->root = p->left;
+                    else if (p->right)
+                        tree->root = p->right;
+                    else
+                        tree->root = NULL;
+                }
+                lab2_node_delete(p);
+                return LAB2_SUCCESS;
+            }
         }
     }
     return LAB2_ERROR;
