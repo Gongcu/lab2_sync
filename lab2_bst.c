@@ -92,22 +92,22 @@ lab2_node *lab2_node_create(int key)
 int lab2_node_insert(lab2_tree *tree, lab2_node *new_node)
 {
     // You need to implement lab2_node_insert function.
-    lab2_node *root = tree->root;
+    lab2_node *temp = tree->root;
     lab2_node *parent_node = NULL;
-    if (root == NULL) //if root is empty, insert node in the root
+    if (temp == NULL) //if root is empty, insert node in the root
     {
         tree->root = new_node;
         return LAB2_SUCCESS;
     }
-    while (root != NULL) //Goes down until it meets the downmost tree
+    while (temp != NULL) //Goes down until it meets the downmost tree
     {
-        parent_node = root;
-        if (root->key == new_node->key) // already exists
+        parent_node = temp;
+        if (temp->key == new_node->key) // already exists
             return LAB2_ERROR;
-        if (root->key > new_node->key) //Set up proper location of the root
-            root = root->left;
+        if (temp->key > new_node->key) //Set up proper location of the root
+            temp = temp->left;
         else
-            root = root->right;
+            temp = temp->right;
     }
 
     if (parent_node->key > new_node->key) //insert key value
@@ -130,28 +130,28 @@ int lab2_node_insert_cg(lab2_tree *tree, lab2_node *new_node)
 {
     // You need to implement lab2_node_insert_cg function.
 
-    lab2_node *root = tree->root;
+    lab2_node *temp = tree->root;
     lab2_node *parent_node = NULL;
     pthread_mutex_lock(&tree->mutex);
 
-    if (root == NULL) //if root is empty, insert node in the root
+    if (temp == NULL) //if root is empty, insert node in the root
     {
         tree->root = new_node;
         pthread_mutex_unlock(&(tree->mutex));
         return LAB2_SUCCESS;
     }
 
-    while (root != NULL) //Goes down until it meets the downmost tree
+    while (temp != NULL) //Goes down until it meets the downmost tree
     {
-        parent_node = root;
-        if (root->key == new_node->key){ // already exists
+        parent_node = temp;
+        if (temp->key == new_node->key){ // already exists
             pthread_mutex_unlock(&(tree->mutex));
             return LAB2_ERROR;
         }
-        if (root->key > new_node->key) //Set up proper location of the root
-            root = root->left;
+        if (temp->key > new_node->key) //Set up proper location of the root
+            temp = temp->left;
         else
-            root = root->right;
+            temp = temp->right;
     }
 
     if (parent_node->key > new_node->key) //insert key value
@@ -191,25 +191,24 @@ int lab2_node_insert_fg(lab2_tree *tree, lab2_node *new_node)
     while (temp != NULL) //Goes down until it meets the downmost tree
     {
         parent_node = temp;
-        pthread_mutex_lock(&parent_node->mutex);
-        if (temp->key == new_node->key){ // already exists
-            pthread_mutex_unlock(&parent_node->mutex);
+        if (temp->key == new_node->key) // already exists
             return LAB2_ERROR;
-        }
+        
+        pthread_mutex_lock(&parent_node->mutex);
         if (temp->key > new_node->key) //Set up proper location of the root
             temp = temp->left;
         else
             temp = temp->right;
         pthread_mutex_unlock(&parent_node->mutex);
     }
-    pthread_mutex_lock(&tree->mutex);
+    pthread_mutex_lock(&parent_node->mutex);
     if (parent_node->key > new_node->key){ //insert key value
         parent_node->left = new_node;
     }
     else{
         parent_node->right = new_node;
     }
-    pthread_mutex_unlock(&tree->mutex);
+    pthread_mutex_unlock(&parent_node->mutex);
     return LAB2_SUCCESS;
 }
 
