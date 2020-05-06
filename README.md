@@ -1,12 +1,12 @@
 # lab2_sync
-DKU_OS Lab2 Concurreny Assignment
+DKU_OS Lab2 Concurreny BST Assignment
 
-## Team Member
-GCU & JYS
+### Team Member
+공채운, 정유석
 
-## Implementation
-JYS:CG_insert & FG_insert
-GCU:CG_remove & FG_remove
+### Implementation
+* 정유석:CG_insert & FG_insert
+* 공채운:CG_remove & FG_remove
 
-## LICENSE
-Freely available after May 7th
+### LICENSE
+Freely available after May 7th 
