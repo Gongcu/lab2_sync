@@ -96,30 +96,72 @@ int lab2_node_insert(lab2_tree *tree, lab2_node *new_node)
     // You need to implement lab2_node_insert function.
     lab2_node *temp = tree->root;
     lab2_node *parent_node = NULL;
-    if (!temp)
+    if (temp == NULL) //if root is empty, insert node in the root
     {
         tree->root = new_node;
         return LAB2_SUCCESS;
     }
-    while (temp)
+    while (temp != NULL) //Goes down until it meets the downmost tree
     {
         parent_node = temp;
-        if (temp->key == new_node->key)
+        if (temp->key == new_node->key) // already exists
             return LAB2_ERROR;
-        if (temp->key > new_node->key){
+        if (temp->key > new_node->key) //Set up proper location of the root
             temp = temp->left;
-        }
-        else{
+        else
             temp = temp->right;
-        }
     }
 
-    if (parent_node->key > new_node->key){
+    if (parent_node->key > new_node->key) //insert key value
         parent_node->left = new_node;
-    }
-    else{
+    else
         parent_node->right = new_node;
+    return LAB2_SUCCESS;
+}
+
+
+/* 
+ * TODO
+ *  Implement a function which insert nodes from the BST in coarse-garined manner.
+ *
+ *  @param lab2_tree *tree      : bst which you need to insert new node in coarse-grained manner.
+ *  @param lab2_node *new_node  : bst node which you need to insert. 
+ *  @return                     : status (success or fail)
+ */
+int lab2_node_insert_cg(lab2_tree *tree, lab2_node *new_node)
+{
+    // You need to implement lab2_node_insert_cg function.
+
+    lab2_node *temp = tree->root;
+    lab2_node *parent_node = NULL;
+    pthread_mutex_lock(&tree->mutex);
+
+    if (temp == NULL) //if root is empty, insert node in the root
+    {
+        tree->root = new_node;
+        pthread_mutex_unlock(&(tree->mutex));
+        return LAB2_SUCCESS;
     }
+
+    while (temp != NULL) //Goes down until it meets the downmost tree
+    {
+        parent_node = temp;
+        if (temp->key == new_node->key){ // already exists
+            pthread_mutex_unlock(&(tree->mutex));
+            return LAB2_ERROR;
+        }
+        if (temp->key > new_node->key) //Set up proper location of the root
+            temp = temp->left;
+        else
+            temp = temp->right;
+    }
+
+    if (parent_node->key > new_node->key) //insert key value
+        parent_node->left = new_node;
+    else
+        parent_node->right = new_node;
+
+    pthread_mutex_unlock(&(tree->mutex));
     return LAB2_SUCCESS;
 }
 
@@ -133,76 +175,45 @@ int lab2_node_insert(lab2_tree *tree, lab2_node *new_node)
  */
 int lab2_node_insert_fg(lab2_tree *tree, lab2_node *new_node)
 {
-    // You need to implement lab2_node_insert_fg function.
-   lab2_node *temp = tree->root;
-    lab2_node *parent_node = NULL;
-    if (!temp)
-    {
-        tree->root = new_node;
-        return LAB2_SUCCESS;
-    }
-    while (temp)
-    {
-        parent_node = temp;
-        if (temp->key == new_node->key)
-            return LAB2_ERROR;
-        if (temp->key > new_node->key){
-            temp = temp->left;
-        }
-        else{
-            temp = temp->right;
-        }
-    }
-
-    if (parent_node->key > new_node->key){
-        parent_node->left = new_node;
-    }
-    else{
-        parent_node->right = new_node;
-    }
-    return LAB2_SUCCESS;
-}
-
-/* 
- * TODO
- *  Implement a function which insert nodes from the BST in coarse-garined manner.
- *
- *  @param lab2_tree *tree      : bst which you need to insert new node in coarse-grained manner.
- *  @param lab2_node *new_node  : bst node which you need to insert. 
- *  @return                     : status (success or fail)
- */
-int lab2_node_insert_cg(lab2_tree *tree, lab2_node *new_node)
-{
-    // You need to implement lab2_node_insert_cg function.
+ 
+   // You need to implement lab2_node_insert_fg function.
     // You need to implement lab2_node_insert function.
-  lab2_node *temp = tree->root;
+
+    lab2_node *temp = tree->root;
     lab2_node *parent_node = NULL;
-    if (!temp)
+    
+    if (temp == NULL) //if root is empty, insert node in the root
     {
+        pthread_mutex_lock(&(tree->mutex));
         tree->root = new_node;
+        pthread_mutex_unlock(&(tree->mutex));
         return LAB2_SUCCESS;
     }
-    while (temp)
+    
+    while (temp != NULL) //Goes down until it meets the downmost tree
     {
         parent_node = temp;
-        if (temp->key == new_node->key)
+        if (temp->key == new_node->key) // already exists
             return LAB2_ERROR;
-        if (temp->key > new_node->key){
+        
+        pthread_mutex_lock(&parent_node->mutex);
+        if (temp->key > new_node->key) //Set up proper location of the root
             temp = temp->left;
-        }
-        else{
+        else
             temp = temp->right;
-        }
+        pthread_mutex_unlock(&parent_node->mutex);
     }
-
-    if (parent_node->key > new_node->key){
+    pthread_mutex_lock(&parent_node->mutex);
+    if (parent_node->key > new_node->key){ //insert key value
         parent_node->left = new_node;
     }
     else{
         parent_node->right = new_node;
     }
+    pthread_mutex_unlock(&parent_node->mutex);
     return LAB2_SUCCESS;
 }
+
 
 /* 
  * TODO
@@ -360,7 +371,7 @@ lab2_node* min_search(lab2_node* root){ //ildan tree lock najunge use stack mute
 
 int lab2_node_remove_fg(lab2_tree *tree, int key)
 {
-     int found = 0;
+      int found = 0;
     pthread_mutex_lock(&(tree->mutex));
     if (!tree->root)
     {
@@ -368,10 +379,9 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
     }
     else
     {
-        // You need to implement lab2_node_remove function.
-        lab2_node *p = tree->root; //to be deleted node
-        lab2_node *q = NULL;       //deleted node' parent
-
+        lab2_node *p;        //to be deleted node
+        lab2_node *q = NULL; //deleted node' parent
+        p = tree->root;
         while (p)
         {
             if (p->key == key)
@@ -386,8 +396,10 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                 p = p->right;
         }
         pthread_mutex_unlock(&(tree->mutex));
-        if (!found){
+        
 
+        if (!p){
+            return LAB2_ERROR;
         }
         else
         {
@@ -410,8 +422,10 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
 
                 p->key = min->key;
                 lab2_node_delete(min);
+                return LAB2_SUCCESS;
             }
-            else if ((p->left == NULL) && (p->right == NULL))
+
+            if ((p->left == NULL) && (p->right == NULL))
             {
                 if (q)
                 {
@@ -423,9 +437,10 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                 else
                     tree->root = NULL;
                 lab2_node_delete(p);
+                return LAB2_SUCCESS;
             }
-            else
-            { // one child
+
+            if(!(p->left)&&(p->right) || (p->left)&&!(p->right)){// one child
                 if (q)
                 {
                     if (q->left == p) //Parent's left child is to be deleted
@@ -454,10 +469,11 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                         tree->root = NULL;
                 }
                 lab2_node_delete(p);
+                return LAB2_SUCCESS;
             }
         }
     }
-    return LAB2_SUCCESS;
+    return LAB2_ERROR;
 }
 
 /* 
