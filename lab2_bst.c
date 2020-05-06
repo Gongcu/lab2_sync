@@ -18,7 +18,7 @@
 #include <string.h>
 
 #include "lab2_sync_types.h"
-pthread_mutex_t SUB_MUTEX = PTHREAD_MUTEX_INITIALIZER;
+
 /*
  * TODO
  *  Implement funtction which traverse BST in in-order
@@ -385,10 +385,9 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
             else
                 p = p->right;
         }
-        
+        pthread_mutex_unlock(&(tree->mutex));
         if (!found){
-            pthread_mutex_unlock(&(tree->mutex));
-            return LAB2_ERROR;
+
         }
         else
         {
@@ -456,7 +455,6 @@ int lab2_node_remove_fg(lab2_tree *tree, int key)
                 }
                 lab2_node_delete(p);
             }
-            pthread_mutex_unlock(&(tree->mutex));
         }
     }
     return LAB2_SUCCESS;
